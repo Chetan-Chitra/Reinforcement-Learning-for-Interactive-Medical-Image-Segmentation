@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Segmentation - AI Diagnostic Tool</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    <h1>AI Brain Tumor Segmentation</h1>
+                </div>
+                <p class="subtitle">Advanced Deep Learning Analysis for Medical Imaging</p>
+            </div>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <div class="card upload-section">
+                <div class="card-content">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <div class="upload-text">
+                            <h3>Upload Brain MRI Scan</h3>
+                            <p>Drag and drop your MRI scan or click to browse</p>
+                            <p class="file-info">Supports: PNG, JPG, JPEG, BMP, TIFF, DICOM</p>
+                        </div>
+                        <input type="file" id="fileInput" accept=".png,.jpg,.jpeg,.bmp,.tiff,.dcm" hidden>
+                        <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-folder-open"></i> Select MRI Scan
+                        </button>
+                    </div>
+                    
+                    <div class="upload-progress" id="uploadProgress" style="display: none;">
+                        <div class="progress-container">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <div class="progress-info">
+                                <i class="fas fa-brain spinning"></i>
+                                <span class="progress-text" id="progressText">Analyzing brain scan with AI...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="card results-section" id="resultsSection" style="display: none;">
+                <div class="card-header">
+                    <h2><i class="fas fa-microscope"></i> Comprehensive Analysis Results</h2>
+                    <div class="confidence-badge" id="confidenceBadge">
+                        <i class="fas fa-check-circle"></i>
+                        <span id="confidenceText">Analysis Complete</span>
+                    </div>
+                </div>
+                <div class="card-content">
+                    <!-- Image Results -->
+                    <div class="image-results">
+                        <div class="scan-display">
+                            <img id="resultImage" alt="Brain Tumor Segmentation Result">
+                        </div>
+                    </div>
+                    
+                    <!-- Comprehensive Metrics Dashboard -->
+                    <div class="metrics-dashboard">
+                        
+                        <!-- Primary Clinical Summary -->
+                        <div class="section-header">
+                            <h3><i class="fas fa-chart-pie"></i> Clinical Overview</h3>
+                        </div>
+                        
+                        <div class="primary-metrics-grid">
+                            <div class="primary-metric-card confidence">
+                                <div class="metric-icon">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <div class="metric-content">
+                                    <div class="metric-value" id="confidenceScore">0%</div>
+                                    <div class="metric-label">Model Confidence</div>
+                                    <div class="metric-description">AI prediction confidence level</div>
+                                </div>
+                            </div>
+                            
+                            <div class="primary-metric-card severity">
+                                <div class="metric-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="metric-content">
+                                    <div class="metric-value" id="severityLevel">Normal</div>
+                                    <div class="metric-label">Severity Assessment</div>
+                                    <div class="metric-description">Clinical severity classification</div>
+                                </div>
+                            </div>
+                            
+                            <div class="primary-metric-card percentage">
+                                <div class="metric-icon">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="metric-content">
+                                    <div class="metric-value" id="tumorPercentage">0%</div>
+                                    <div class="metric-label">Abnormal Tissue</div>
+                                    <div class="metric-description">Percentage of affected brain tissue</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tissue Ratio Visualization -->
+                        <div class="section-header">
+                            <h3><i class="fas fa-chart-donut"></i> Tissue Distribution Analysis</h3>
+                        </div>
+                        
+                        <div class="tissue-analysis">
+                            <div class="pie-chart-container">
+                                <canvas id="tissueChart" width="300" height="300"></canvas>
+                            </div>
+                            <div class="tissue-stats">
+                                <div class="tissue-stat normal">
+                                    <div class="stat-indicator"></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Normal Tissue</div>
+                                        <div class="stat-value" id="normalPercentage">0%</div>
+                                        <div class="stat-pixels" id="healthyPixels">0 pixels</div>
+                                    </div>
+                                </div>
+                                <div class="tissue-stat abnormal">
+                                    <div class="stat-indicator"></div>
+                                    <div class="stat-content">
+                                        <div class="stat-label">Abnormal Tissue</div>
+                                        <div class="stat-value" id="abnormalPercentage">0%</div>
+                                        <div class="stat-pixels" id="abnormalPixels">0 pixels</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pixel-Level Insights -->
+                        <div class="section-header">
+                            <h3><i class="fas fa-microscope"></i> Pixel-Level Analysis</h3>
+                        </div>
+                        
+                        <div class="pixel-metrics">
+                            <div class="pixel-card">
+                                <div class="pixel-icon total">
+                                    <i class="fas fa-expand"></i>
+                                </div>
+                                <div class="pixel-info">
+                                    <div class="pixel-value" id="totalPixels">0</div>
+                                    <div class="pixel-label">Total Pixels</div>
+                                </div>
+                            </div>
+                            <div class="pixel-card">
+                                <div class="pixel-icon affected">
+                                    <i class="fas fa-crosshairs"></i>
+                                </div>
+                                <div class="pixel-info">
+                                    <div class="pixel-value" id="affectedPixels">0</div>
+                                    <div class="pixel-label">Affected Pixels</div>
+                                </div>
+                            </div>
+                            <div class="pixel-card">
+                                <div class="pixel-icon healthy">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="pixel-info">
+                                    <div class="pixel-value" id="healthyPixelsCount">0</div>
+                                    <div class="pixel-label">Healthy Pixels</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Brain Regions Analysis -->
+                        <div class="section-header">
+                            <h3><i class="fas fa-brain"></i> Affected Brain Regions</h3>
+                        </div>
+                        
+                        <div class="regions-analysis" id="regionsAnalysis">
+                            <!-- Will be populated with JavaScript -->
+                        </div>
+
+                        <!-- Performance Metrics -->
+                        <div class="section-header">
+                            <h3><i class="fas fa-tachometer-alt"></i> Analysis Performance</h3>
+                        </div>
+                        
+                        <div class="performance-metrics">
+                            <div class="perf-item">
+                                <div class="perf-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="perf-content">
+                                    <div class="perf-label">Processing Time</div>
+                                    <div class="perf-value" id="processingTime">0.0s</div>
+                                </div>
+                            </div>
+                            <div class="perf-item">
+                                <div class="perf-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="perf-content">
+                                    <div class="perf-label">Analysis Timestamp</div>
+                                    <div class="perf-value" id="analysisTime">--</div>
+                                </div>
+                            </div>
+                            <div class="perf-item">
+                                <div class="perf-icon">
+                                    <i class="fas fa-code-branch"></i>
+                                </div>
+                                <div class="perf-content">
+                                    <div class="perf-label">Model Version</div>
+                                    <div class="perf-value" id="modelVersion">--</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Clinical Metrics -->
+                        <div class="section-header">
+                            <h3><i class="fas fa-chart-bar"></i> Advanced Diagnostic Metrics</h3>
+                        </div>
+                        
+                        <div class="advanced-metrics">
+                            <div class="advanced-grid">
+                                <div class="advanced-metric">
+                                    <div class="metric-header">
+                                        <i class="fas fa-bullseye"></i>
+                                        <span>Dice Score</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <div class="bar-fill" id="diceBar"></div>
+                                    </div>
+                                    <div class="metric-number" id="diceScore">0.000</div>
+                                </div>
+                                
+                                <div class="advanced-metric">
+                                    <div class="metric-header">
+                                        <i class="fas fa-vector-square"></i>
+                                        <span>IoU Score</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <div class="bar-fill" id="iouBar"></div>
+                                    </div>
+                                    <div class="metric-number" id="iouScore">0.000</div>
+                                </div>
+                                
+                                <div class="advanced-metric">
+                                    <div class="metric-header">
+                                        <i class="fas fa-search-plus"></i>
+                                        <span>Sensitivity</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <div class="bar-fill" id="sensitivityBar"></div>
+                                    </div>
+                                    <div class="metric-number" id="sensitivity">0.000</div>
+                                </div>
+                                
+                                <div class="advanced-metric">
+                                    <div class="metric-header">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <span>Specificity</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <div class="bar-fill" id="specificityBar"></div>
+                                    </div>
+                                    <div class="metric-number" id="specificity">0.000</div>
+                                </div>
+                                
+                                <div class="advanced-metric">
+                                    <div class="metric-header">
+                                        <i class="fas fa-crosshairs"></i>
+                                        <span>Precision</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <div class="bar-fill" id="precisionBar"></div>
+                                    </div>
+                                    <div class="metric-number" id="precision">0.000</div>
+                                </div>
+                                
+                                <div class="advanced-metric">
+                                    <div class="metric-header">
+                                        <i class="fas fa-redo"></i>
+                                        <span>Recall</span>
+                                    </div>
+                                    <div class="metric-bar">
+                                        <div class="bar-fill" id="recallBar"></div>
+                                    </div>
+                                    <div class="metric-number" id="recall">0.000</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clinical Notes -->
+                        <div class="section-header">
+                            <h3><i class="fas fa-notes-medical"></i> AI Clinical Interpretation</h3>
+                        </div>
+                        
+                        <div class="clinical-notes" id="clinicalNotes">
+                            <div class="notes-content" id="notesContent">
+                                <!-- Will be populated based on results -->
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" onclick="downloadReport()">
+                                <i class="fas fa-download"></i> Download Detailed Report
+                            </button>
+                            <button class="btn btn-primary" onclick="analyzeAnother()">
+                                <i class="fas fa-plus"></i> Analyze Another Scan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Section -->
+            <div class="card error-section" id="errorSection" style="display: none;">
+                <div class="card-header error-header">
+                    <h2><i class="fas fa-exclamation-triangle"></i> Analysis Error</h2>
+                </div>
+                <div class="card-content">
+                    <div class="error-message" id="errorMessage"></div>
+                    <button class="btn btn-primary" onclick="resetInterface()">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="disclaimer">
+                    <p><strong>Medical Disclaimer:</strong> This AI tool is for research and educational purposes only. Results should not be used for medical diagnosis without consultation with qualified healthcare professionals.</p>
+                </div>
+                <div class="tech-info">
+                    <span class="tech-tag">Deep Learning</span>
+                    <span class="tech-tag">Medical AI</span>
+                    <span class="tech-tag">Brain Imaging</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Global variables
+        let isProcessing = false;
+        let tissueChart = null;
+
+        // Setup event listeners on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFile(files[0]);
+                }
+            });
+
+            // File input change
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFile(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleFile(file) {
+            if (isProcessing) return;
+
+            console.log("Processing file:", file.name, file.type, file.size);
+
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/bmp', 'image/tiff'];
+            if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.dcm')) {
+                showError('Please upload a valid medical image file (PNG, JPG, JPEG, BMP, TIFF, or DICOM).');
+                return;
+            }
+
+            // Validate file size (16MB max)
+            if (file.size > 16 * 1024 * 1024) {
+                showError('File size is too large. Please upload an image smaller than 16MB.');
+                return;
+            }
+
+            isProcessing = true;
+            showProgress();
+            hideResults();
+            hideError();
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            console.log("Sending request to server...");
+
+            // Add timeout and better error handling
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            })
+            .then(response => {
+                clearTimeout(timeoutId);
+                console.log("Response received:", response.status, response.statusText);
+                
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                hideProgress();
+                isProcessing = false;
+                
+                console.log("Data received:", data);
+
+                if (data.success) {
+                    showResults(data);
+                } else {
+                    showError(data.error || 'An error occurred during analysis. Please try again.');
+                }
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                hideProgress();
+                isProcessing = false;
+                
+                console.error('Request error:', error);
+                
+                if (error.name === 'AbortError') {
+                    showError('Request timed out. The analysis is taking too long. Please try again.');
+                } else if (error.message.includes('Failed to fetch')) {
+                    showError('Cannot connect to the server. Please ensure the application is running and try again.');
+                } else {
+                    showError(`Network error: ${error.message}. Please check your connection and try again.`);
+                }
+            });
+        }
+
+        function showProgress() {
+            document.getElementById('uploadProgress').style.display = 'block';
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress > 85) progress = 85;
+                
+                document.getElementById('progressFill').style.width = progress + '%';
+                
+                if (!isProcessing) {
+                    clearInterval(interval);
+                    document.getElementById('progressFill').style.width = '100%';
+                    setTimeout(() => {
+                        document.getElementById('progressFill').style.width = '0%';
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        function hideProgress() {
+            document.getElementById('uploadProgress').style.display = 'none';
+        }
+
+        function showResults(data) {
+            console.log("Showing results with data:", data);
+            
+            const resultsSection = document.getElementById('resultsSection');
+            const resultImage = document.getElementById('resultImage');
+            
+            // Check if data has the expected structure
+            if (!data.metrics) {
+                console.error("No metrics found in data:", data);
+                showError("Invalid response from server. Please try again.");
+                return;
+            }
+            
+            const metrics = data.metrics;
+
+            // Display image
+            if (data.visualization) {
+                resultImage.src = `data:image/png;base64,${data.visualization}`;
+            } else {
+                console.error("No visualization found in data");
+            }
+
+            // Helper function to safely update element
+            function safeUpdateElement(id, value) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.textContent = value;
+                } else {
+                    console.warn(`Element with id '${id}' not found`);
+                }
+            }
+
+            // Update primary metrics with safety checks
+            if (metrics.confidence_score !== undefined) {
+                safeUpdateElement('confidenceScore', `${metrics.confidence_score}%`);
+            }
+            if (metrics.severity) {
+                safeUpdateElement('severityLevel', metrics.severity);
+            }
+            if (metrics.tumor_percentage !== undefined) {
+                safeUpdateElement('tumorPercentage', `${metrics.tumor_percentage}%`);
+            }
+
+            // Update tissue distribution with safety checks
+            if (metrics.tissue_ratio) {
+                safeUpdateElement('normalPercentage', `${metrics.tissue_ratio.normal}%`);
+                safeUpdateElement('abnormalPercentage', `${metrics.tissue_ratio.abnormal}%`);
+            }
+            if (metrics.healthy_pixels !== undefined) {
+                safeUpdateElement('healthyPixels', `${metrics.healthy_pixels.toLocaleString()} pixels`);
+            }
+            if (metrics.tumor_pixels !== undefined) {
+                safeUpdateElement('abnormalPixels', `${metrics.tumor_pixels.toLocaleString()} pixels`);
+            }
+
+            // Update pixel metrics with safety checks
+            if (metrics.total_pixels !== undefined) {
+                safeUpdateElement('totalPixels', metrics.total_pixels.toLocaleString());
+                safeUpdateElement('affectedPixels', metrics.tumor_pixels.toLocaleString());
+                safeUpdateElement('healthyPixelsCount', metrics.healthy_pixels.toLocaleString());
+            }
+
+            // Update performance metrics with safety checks
+            if (metrics.processing_time !== undefined) {
+                safeUpdateElement('processingTime', `${metrics.processing_time}s`);
+            }
+            if (metrics.timestamp) {
+                safeUpdateElement('analysisTime', metrics.timestamp);
+            }
+            if (metrics.model_version) {
+                safeUpdateElement('modelVersion', metrics.model_version);
+            }
+
+            // Update advanced metrics with safety checks and debugging
+            console.log("Updating advanced metrics:");
+            if (metrics.dice_score !== undefined) {
+                console.log("Dice score:", metrics.dice_score);
+                updateAdvancedMetric('dice', metrics.dice_score);
+            }
+            if (metrics.iou_score !== undefined) {
+                console.log("IoU score:", metrics.iou_score);
+                updateAdvancedMetric('iou', metrics.iou_score);
+            }
+            if (metrics.sensitivity !== undefined) {
+                console.log("Sensitivity:", metrics.sensitivity);
+                updateAdvancedMetric('sensitivity', metrics.sensitivity);
+            }
+            if (metrics.specificity !== undefined) {
+                console.log("Specificity:", metrics.specificity);
+                updateAdvancedMetric('specificity', metrics.specificity);
+            }
+            if (metrics.precision !== undefined) {
+                console.log("Precision:", metrics.precision);
+                updateAdvancedMetric('precision', metrics.precision);
+            }
+            if (metrics.recall !== undefined) {
+                console.log("Recall:", metrics.recall);
+                updateAdvancedMetric('recall', metrics.recall);
+            }
+
+            // Create pie chart with safety checks
+            if (metrics.tissue_ratio) {
+                try {
+                    createTissueChart(metrics.tissue_ratio);
+                } catch (error) {
+                    console.error("Error creating tissue chart:", error);
+                }
+            }
+
+            // Update regions analysis with safety checks
+            if (metrics.regions_affected) {
+                try {
+                    updateRegionsAnalysis(metrics.regions_affected);
+                } catch (error) {
+                    console.error("Error updating regions analysis:", error);
+                }
+            }
+
+            // Generate clinical notes with safety checks
+            try {
+                generateClinicalNotes(metrics);
+            } catch (error) {
+                console.error("Error generating clinical notes:", error);
+            }
+
+            // Update confidence badge with safety checks
+            try {
+                updateConfidenceBadge(metrics);
+            } catch (error) {
+                console.error("Error updating confidence badge:", error);
+            }
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function updateAdvancedMetric(metricName, value) {
+            console.log(`Updating ${metricName} with value:`, value, typeof value);
+            
+            const scoreElement = document.getElementById(`${metricName}Score`);
+            const barElement = document.getElementById(`${metricName}Bar`);
+            
+            // Ensure value is a number
+            const numValue = typeof value === 'number' ? value : parseFloat(value) || 0;
+            
+            if (scoreElement) {
+                scoreElement.textContent = numValue.toFixed(3);
+                console.log(`Set ${metricName}Score to:`, numValue.toFixed(3));
+            } else {
+                console.warn(`Element '${metricName}Score' not found`);
+            }
+            
+            if (barElement) {
+                const percentage = Math.max(0, Math.min(100, numValue * 100)); // Clamp between 0-100
+                barElement.style.width = `${percentage}%`;
+                
+                // Color coding based on value
+                let colorClass = 'good';
+                if (numValue < 0.7) colorClass = 'poor';
+                else if (numValue < 0.85) colorClass = 'fair';
+                
+                barElement.className = `bar-fill ${colorClass}`;
+                console.log(`Set ${metricName}Bar width to:`, percentage + '%', 'class:', colorClass);
+            } else {
+                console.warn(`Element '${metricName}Bar' not found`);
+            }
+        }
+
+        function createTissueChart(tissueRatio) {
+            const ctx = document.getElementById('tissueChart');
+            if (!ctx) {
+                console.warn("tissueChart canvas element not found");
+                return;
+            }
+            
+            // Destroy existing chart if it exists
+            if (tissueChart) {
+                tissueChart.destroy();
+            }
+            
+            try {
+                tissueChart = new Chart(ctx.getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Normal Tissue', 'Abnormal Tissue'],
+                        datasets: [{
+                            data: [tissueRatio.normal, tissueRatio.abnormal],
+                            backgroundColor: [
+                                '#22c55e', // Green for normal
+                                '#ef4444'  // Red for abnormal
+                            ],
+                            borderColor: [
+                                '#16a34a',
+                                '#dc2626'
+                            ],
+                            borderWidth: 2,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.label + ': ' + context.parsed + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Error creating chart:", error);
+            }
+        }
+
+        function updateRegionsAnalysis(regionsAffected) {
+            const container = document.getElementById('regionsAnalysis');
+            if (!container) {
+                console.warn("regionsAnalysis container not found");
+                return;
+            }
+            
+            if (!regionsAffected || regionsAffected.length === 0) {
+                container.innerHTML = `
+                    <div class="no-regions">
+                        <i class="fas fa-check-circle"></i>
+                        <p>No significant abnormalities detected in major brain regions</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let regionsHTML = '';
+            regionsAffected.forEach(region => {
+                const severityClass = region.affected_percentage > 5 ? 'high' : 
+                                   region.affected_percentage > 2 ? 'medium' : 'low';
+                
+                regionsHTML += `
+                    <div class="region-item ${severityClass}">
+                        <div class="region-header">
+                            <div class="region-name">${region.name}</div>
+                            <div class="region-percentage">${region.affected_percentage}%</div>
+                        </div>
+                        <div class="region-bar">
+                            <div class="region-fill" style="width: ${region.affected_percentage}%"></div>
+                        </div>
+                        <div class="region-details">
+                            ${region.affected_pixels.toLocaleString()} affected pixels
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = regionsHTML;
+        }
+
+        function generateClinicalNotes(metrics) {
+            const notesContent = document.getElementById('notesContent');
+            if (!notesContent) {
+                console.warn("notesContent element not found");
+                return;
+            }
+            
+            let notes = '';
+
+            // Safely access tumor_percentage
+            const tumorPercentage = metrics.tumor_percentage || 0;
+            const severity = metrics.severity || 'Unknown';
+            const confidenceScore = metrics.confidence_score || 0;
+            const processingTime = metrics.processing_time || 0;
+            const diceScore = metrics.dice_score || 0;
+            const sensitivity = metrics.sensitivity || 0;
+            const specificity = metrics.specificity || 0;
+
+            // Main assessment
+            if (tumorPercentage < 1) {
+                notes += `
+                    <div class="note-item success">
+                        <i class="fas fa-check-circle"></i>
+                        <p><strong>Assessment:</strong> Minimal abnormal tissue detected (${tumorPercentage}%). Scan appears largely within normal limits.</p>
+                    </div>
+                `;
+            } else if (tumorPercentage < 5) {
+                notes += `
+                    <div class="note-item warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p><strong>Assessment:</strong> ${severity} abnormalities detected affecting ${tumorPercentage}% of brain tissue. Further evaluation recommended.</p>
+                    </div>
+                `;
+            } else {
+                notes += `
+                    <div class="note-item alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p><strong>Assessment:</strong> ${severity} abnormalities detected affecting ${tumorPercentage}% of brain tissue. Immediate medical consultation advised.</p>
+                    </div>
+                `;
+            }
+
+            // Confidence note
+            notes += `
+                <div class="note-item info">
+                    <i class="fas fa-brain"></i>
+                    <p><strong>AI Confidence:</strong> The model processed this scan with ${confidenceScore}% confidence in ${processingTime} seconds.</p>
+                </div>
+            `;
+
+            // Advanced metrics note
+            notes += `
+                <div class="note-item info">
+                    <i class="fas fa-chart-bar"></i>
+                    <p><strong>Technical Metrics:</strong> Dice Score: ${diceScore.toFixed(3)}, Sensitivity: ${sensitivity.toFixed(3)}, Specificity: ${specificity.toFixed(3)}</p>
+                </div>
+            `;
+
+            // Affected regions note
+            if (metrics.regions_affected && metrics.regions_affected.length > 0) {
+                const regionNames = metrics.regions_affected.map(r => r.name).join(', ');
+                notes += `
+                    <div class="note-item warning">
+                        <i class="fas fa-map-marked-alt"></i>
+                        <p><strong>Affected Regions:</strong> Abnormalities detected in: ${regionNames}</p>
+                    </div>
+                `;
+            }
+
+            // Recommendations
+            notes += `
+                <div class="note-item info">
+                    <i class="fas fa-user-md"></i>
+                    <p><strong>Recommendation:</strong> This AI analysis should be reviewed by a qualified radiologist or neurologist for clinical correlation and definitive diagnosis.</p>
+                </div>
+            `;
+
+            notesContent.innerHTML = notes;
+        }
+
+        function updateConfidenceBadge(metrics) {
+            const badge = document.getElementById('confidenceBadge');
+            const confidenceText = document.getElementById('confidenceText');
+            
+            if (!badge || !confidenceText) {
+                console.warn("Confidence badge elements not found");
+                return;
+            }
+            
+            const confidenceScore = metrics.confidence_score || 0;
+            
+            badge.className = 'confidence-badge';
+            
+            if (confidenceScore >= 90) {
+                badge.classList.add('success');
+                confidenceText.textContent = `High Confidence (${confidenceScore}%)`;
+            } else if (confidenceScore >= 75) {
+                badge.classList.add('warning');
+                confidenceText.textContent = `Moderate Confidence (${confidenceScore}%)`;
+            } else {
+                badge.classList.add('alert');
+                confidenceText.textContent = `Low Confidence (${confidenceScore}%)`;
+            }
+        }
+
+        function hideResults() {
+            document.getElementById('resultsSection').style.display = 'none';
+            
+            // Destroy chart if it exists
+            if (tissueChart) {
+                tissueChart.destroy();
+                tissueChart = null;
+            }
+        }
+
+        function showError(message) {
+            const errorSection = document.getElementById('errorSection');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.innerHTML = `
+                <div class="error-content">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+            errorSection.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorSection').style.display = 'none';
+        }
+
+        function resetInterface() {
+            hideError();
+            hideResults();
+            hideProgress();
+            isProcessing = false;
+            document.getElementById('fileInput').value = '';
+        }
+
+        function analyzeAnother() {
+            resetInterface();
+            document.querySelector('.upload-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadReport() {
+            alert('Detailed report download feature - to be implemented based on requirements');
+        }
+    </script>
+</body>
+</html>
