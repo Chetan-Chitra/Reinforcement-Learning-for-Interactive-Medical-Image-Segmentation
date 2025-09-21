@@ -1,5 +1,4 @@
 pip==25.2
-python==3.13.7
 numpy
 Pillow
 matplotlib
