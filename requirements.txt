@@ -7,4 +7,4 @@ opencv-python
 matplotlib
 Werkzeug
 gunicorn
-cv2
+pip==25.2
