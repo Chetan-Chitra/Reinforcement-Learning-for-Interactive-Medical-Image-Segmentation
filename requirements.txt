@@ -8,3 +8,4 @@ matplotlib
 Werkzeug
 gunicorn
 pip==25.2
+opencv-contrib-python
