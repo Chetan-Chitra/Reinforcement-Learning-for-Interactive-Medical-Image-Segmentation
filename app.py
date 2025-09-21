@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
 import numpy as np
-import opencv-python
+import cv2
 import io
 import base64
 import os
